@@ -218,7 +218,8 @@ func TestP2PModule_Pubsub(t *testing.T) {
 // TestP2PModule_ConnGater tests P2P Module methods on
 // the instance of ConnectionGater.
 func TestP2PModule_ConnGater(t *testing.T) {
-	gater, err := connectionGater(datastore.NewMapDatastore())
+	var cfg Config
+	gater, err := connectionGater(&cfg, datastore.NewMapDatastore())
 	require.NoError(t, err)
 
 	mgr := newModule(nil, nil, gater, nil, nil)

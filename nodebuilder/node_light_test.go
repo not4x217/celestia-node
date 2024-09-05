@@ -41,6 +41,49 @@ func TestLight_WithMutualPeers(t *testing.T) {
 	assert.Equal(t, node.Config.P2P.MutualPeers, peers)
 }
 
+func TestLight_WithBlockedAddresses(t *testing.T) {
+	addrs := []string{
+		"/ip4/171.240.143.94/tcp/2121",
+		"/ip4/113.172.240.47/tcp/2121",
+		"/ip4/113.172.255.29/tcp/2121",
+		"/ip4/113.172.192.189/tcp/2121",
+		"/ip4/49.12.151.204/tcp/2121",
+	}
+	cfg := DefaultConfig(nodebuilder.Light)
+	cfg.P2P.BlockAddresses = addrs
+	node := TestNodeWithConfig(t, nodebuilder.Light, cfg)
+
+	require.NotNil(t, node)
+	assert.Equal(t, node.Config.P2P.BlockAddresses, addrs)
+}
+
+func TestLight_WithBlockedSubnets(t *testing.T) {
+	subnets := []string{
+		"/ip4/10.0.0.0/ipcidr/8",
+		"/ip4/100.64.0.0/ipcidr/10",
+		"/ip4/169.254.0.0/ipcidr/16",
+		"/ip4/172.16.0.0/ipcidr/12",
+		"/ip4/192.0.0.0/ipcidr/24",
+		"/ip4/192.0.2.0/ipcidr/24",
+		"/ip4/192.168.0.0/ipcidr/16",
+		"/ip4/198.18.0.0/ipcidr/15",
+		"/ip4/198.51.100.0/ipcidr/24",
+		"/ip4/203.0.113.0/ipcidr/24",
+		"/ip4/240.0.0.0/ipcidr/4",
+		"/ip6/100::/ipcidr/64",
+		"/ip6/2001:2::/ipcidr/48",
+		"/ip6/2001:db8::/ipcidr/32",
+		"/ip6/fc00::/ipcidr/7",
+		"/ip6/fe80::/ipcidr/10",
+	}
+	cfg := DefaultConfig(nodebuilder.Light)
+	cfg.P2P.BlockSubnets = subnets
+	node := TestNodeWithConfig(t, nodebuilder.Light, cfg)
+
+	require.NotNil(t, node)
+	assert.Equal(t, node.Config.P2P.BlockSubnets, subnets)
+}
+
 func TestLight_WithNetwork(t *testing.T) {
 	node := TestNode(t, nodebuilder.Light)
 	require.NotNil(t, node)

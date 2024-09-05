@@ -28,6 +28,10 @@ type Config struct {
 	// PeerExchange configures the node, whether it should share some peers to a pruned peer.
 	// This is enabled by default for Bootstrappers.
 	PeerExchange bool
+	// BlockAddresses is list of block IP addresses to block
+	BlockAddresses []string
+	// BlockSubnets is list of subnets to block
+	BlockSubnets []string
 	// ConnManager is a configuration tuple for ConnectionManager.
 	ConnManager               connManagerConfig
 	RoutingTableRefreshPeriod time.Duration
@@ -81,6 +85,30 @@ func (cfg *Config) mutualPeers() (_ []peer.AddrInfo, err error) {
 	}
 
 	return peer.AddrInfosFromP2pAddrs(maddrs...)
+}
+
+func (cfg *Config) blockedAddresses() (_ []ma.Multiaddr, err error) {
+	addrs := make([]ma.Multiaddr, len(cfg.BlockAddresses))
+	for i, addr := range cfg.BlockAddresses {
+		addrs[i], err = ma.NewMultiaddr(addr)
+		if err != nil {
+			return nil, fmt.Errorf("failure to parse config.P2P.BlockAddresses: %w", err)
+		}
+	}
+
+	return addrs, nil
+}
+
+func (cfg *Config) blockedSubnets() (_ []ma.Multiaddr, err error) {
+	addrs := make([]ma.Multiaddr, len(cfg.BlockSubnets))
+	for i, addr := range cfg.BlockSubnets {
+		addrs[i], err = ma.NewMultiaddr(addr)
+		if err != nil {
+			return nil, fmt.Errorf("failure to parse config.P2P.BlockSubnets: %w", err)
+		}
+	}
+
+	return addrs, nil
 }
 
 // Validate performs basic validation of the config.

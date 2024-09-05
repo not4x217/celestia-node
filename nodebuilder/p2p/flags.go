@@ -14,8 +14,10 @@ import (
 const EnvCustomNetwork = "CELESTIA_CUSTOM"
 
 const (
-	networkFlag = "p2p.network"
-	mutualFlag  = "p2p.mutual"
+	networkFlag     = "p2p.network"
+	mutualFlag      = "p2p.mutual"
+	blockAddrFlag   = "p2p.block-addr"
+	blockSubnetFlag = "p2p.block-subnet"
 )
 
 // Flags gives a set of p2p flags.
@@ -28,6 +30,18 @@ func Flags() *flag.FlagSet {
 		`Comma-separated multiaddresses of mutual peers to keep a prioritized connection with.
 Such connection is immune to peer scoring slashing and connection module trimming.
 Peers must bidirectionally point to each other. (Format: multiformats.io/multiaddr)
+`,
+	)
+	flags.StringSlice(
+		blockAddrFlag,
+		nil,
+		`Comma-separated IP addresses to block. (Format: multiformats.io/multiaddr)
+`,
+	)
+	flags.StringSlice(
+		blockSubnetFlag,
+		nil,
+		`Comma-separated subnets to block. (Format: multiformats.io/multiaddr)
 `,
 	)
 	flags.String(
@@ -47,21 +61,51 @@ func ParseFlags(
 	cmd *cobra.Command,
 	cfg *Config,
 ) error {
+	// Mututal peers
 	mutualPeers, err := cmd.Flags().GetStringSlice(mutualFlag)
 	if err != nil {
 		return err
 	}
-
 	for _, peer := range mutualPeers {
 		_, err = multiaddr.NewMultiaddr(peer)
 		if err != nil {
 			return fmt.Errorf("cmd: while parsing '%s': %w", mutualFlag, err)
 		}
 	}
-
 	if len(mutualPeers) != 0 {
 		cfg.MutualPeers = mutualPeers
 	}
+
+	// Blocked addresses.
+	blockAddr, err := cmd.Flags().GetStringSlice(blockAddrFlag)
+	if err != nil {
+		return err
+	}
+	for _, addr := range blockAddr {
+		_, err := multiaddr.NewMultiaddr(addr)
+		if err != nil {
+			return fmt.Errorf("cmd: while parsing '%s': %w", blockAddrFlag, err)
+		}
+	}
+	if len(blockAddr) != 0 {
+		cfg.BlockAddresses = blockAddr
+	}
+
+	// Blocked subnets.
+	blockSubnet, err := cmd.Flags().GetStringSlice(blockSubnetFlag)
+	if err != nil {
+		return err
+	}
+	for _, subnet := range blockSubnet {
+		_, err := multiaddr.NewMultiaddr(subnet)
+		if err != nil {
+			return fmt.Errorf("cmd: while parsing '%s': %w", blockSubnetFlag, err)
+		}
+	}
+	if len(blockSubnet) != 0 {
+		cfg.BlockSubnets = blockSubnet
+	}
+
 	return nil
 }
 

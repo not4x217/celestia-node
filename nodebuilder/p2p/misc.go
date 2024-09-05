@@ -11,6 +11,8 @@ import (
 	"github.com/libp2p/go-libp2p/p2p/net/conngater"
 	"github.com/libp2p/go-libp2p/p2p/net/connmgr"
 
+	manet "github.com/multiformats/go-multiaddr/net"
+
 	"github.com/celestiaorg/celestia-node/nodebuilder/node"
 )
 
@@ -68,8 +70,43 @@ func connectionManager(cfg *Config, bpeers Bootstrappers) (connmgri.ConnManager,
 }
 
 // connectionGater constructs a BasicConnectionGater.
-func connectionGater(ds datastore.Batching) (*conngater.BasicConnectionGater, error) {
-	return conngater.NewBasicConnectionGater(ds)
+func connectionGater(cfg *Config, ds datastore.Batching) (*conngater.BasicConnectionGater, error) {
+	addresses, err := cfg.blockedAddresses()
+	if err != nil {
+		return nil, err
+	}
+
+	subnets, err := cfg.blockedSubnets()
+	if err != nil {
+		return nil, err
+	}
+
+	gater, err := conngater.NewBasicConnectionGater(ds)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, ma := range addresses {
+		ip, err := manet.ToIP(ma)
+		if err != nil {
+			return nil, err
+		}
+		if err := gater.BlockAddr(ip); err != nil {
+			return nil, err
+		}
+	}
+
+	for _, ma := range subnets {
+		ipNet, err := manet.MultiaddrToIPNet(ma)
+		if err != nil {
+			return nil, err
+		}
+		if err := gater.BlockSubnet(ipNet); err != nil {
+			return nil, err
+		}
+	}
+
+	return gater, nil
 }
 
 // peerStore constructs an on-disk PeerStore.
