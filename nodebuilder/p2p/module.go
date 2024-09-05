@@ -36,6 +36,7 @@ func ConstructModule(tp node.Type, cfg *Config) fx.Option {
 		fx.Invoke(Listen(cfg)),
 		fx.Provide(resourceManager),
 		fx.Provide(resourceManagerOpt(allowList)),
+		fx.Provide(addrFilters(cfg)),
 	)
 
 	switch tp {

@@ -16,6 +16,7 @@ const EnvCustomNetwork = "CELESTIA_CUSTOM"
 const (
 	networkFlag = "p2p.network"
 	mutualFlag  = "p2p.mutual"
+	filterFlag  = "p2p.filter"
 )
 
 // Flags gives a set of p2p flags.
@@ -28,6 +29,12 @@ func Flags() *flag.FlagSet {
 		`Comma-separated multiaddresses of mutual peers to keep a prioritized connection with.
 Such connection is immune to peer scoring slashing and connection module trimming.
 Peers must bidirectionally point to each other. (Format: multiformats.io/multiaddr)
+`,
+	)
+	flags.StringSlice(
+		filterFlag,
+		nil,
+		`Comma-separated multiaddresses not to dial. (Format: multiformats.io/multiaddr)
 `,
 	)
 	flags.String(
@@ -47,21 +54,36 @@ func ParseFlags(
 	cmd *cobra.Command,
 	cfg *Config,
 ) error {
+	// Mututal peers
 	mutualPeers, err := cmd.Flags().GetStringSlice(mutualFlag)
 	if err != nil {
 		return err
 	}
-
 	for _, peer := range mutualPeers {
 		_, err = multiaddr.NewMultiaddr(peer)
 		if err != nil {
 			return fmt.Errorf("cmd: while parsing '%s': %w", mutualFlag, err)
 		}
 	}
-
 	if len(mutualPeers) != 0 {
 		cfg.MutualPeers = mutualPeers
 	}
+
+	// Address filters
+	addrFilters, err := cmd.Flags().GetStringSlice(filterFlag)
+	if err != nil {
+		return err
+	}
+	for _, filter := range addrFilters {
+		_, err := multiaddr.NewMultiaddr(filter)
+		if err != nil {
+			return fmt.Errorf("cmd: while parsing '%s': %w", filterFlag, err)
+		}
+	}
+	if len(addrFilters) != 0 {
+		cfg.AddressFilters = addrFilters
+	}
+
 	return nil
 }
 

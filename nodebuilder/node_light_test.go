@@ -41,6 +41,19 @@ func TestLight_WithMutualPeers(t *testing.T) {
 	assert.Equal(t, node.Config.P2P.MutualPeers, peers)
 }
 
+func TestLight_WithAddressFilters(t *testing.T) {
+	filters := []string{
+		"/ip6/100:0:114b:abc5:e13a:c32f:7a9e:f00a/tcp/2121/p2p/12D3KooWSRqDfpLsQxpyUhLC9oXHD2WuZ2y5FWzDri7LT4Dw9fSi",
+		"/ip4/192.168.1.10/tcp/2121/p2p/12D3KooWSRqDfpLsQxpyUhLC9oXHD2WuZ2y5FWzDri7LT4Dw9fSi",
+	}
+	cfg := DefaultConfig(nodebuilder.Light)
+	cfg.P2P.AddressFilters = filters
+	node := TestNodeWithConfig(t, nodebuilder.Light, cfg)
+
+	require.NotNil(t, node)
+	assert.Equal(t, node.Config.P2P.AddressFilters, filters)
+}
+
 func TestLight_WithNetwork(t *testing.T) {
 	node := TestNode(t, nodebuilder.Light)
 	require.NotNil(t, node)
